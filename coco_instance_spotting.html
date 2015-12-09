@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
+        <script src="https://code.jquery.com/jquery-migrate-1.2.1.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+        <script src="static/js/coco_instance_spotting.js"></script>
+        <script src="static/js/mturk_form_submission.js"></script>
+        <link rel="stylesheet" type="text/css" href="static/css/coco_instance_spotting.css">
+        <script>
+            // ==========================================
+            // =========== prepare data =================
+            // ==========================================
+
+            // define images for each task
+            // TODO: replace your image urls
+            var im_urls = ["http://orig01.deviantart.net/cedb/f/2013/113/f/5/basket_of_cats_by_chained2stone-dy75pd.jpg",
+                           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_HqqOSDNsR4_m9Ofw1AwZeVlzsNLUzw_3DnLoXVLcpAD9nA1A",
+                           "https://upload.wikimedia.org/wikipedia/commons/8/8a/Laitche-P013.jpg"];
+            // set up hints
+            // the location of hints were annotated in the category labeling stage
+            // here 3 hints are corresponding to 3 images
+            var hints = new Array();
+            hints[0] = {"x": [0.3],"y": [0.5], "cat_id":17};
+            hints[1] = {"x": [0.5],"y": [0.5], "cat_id":17};
+            hints[2] = {"x": [0.5],"y": [0.5], "cat_id":17};
+
+            // image objects
+            var Im = new Array();
+
+            // category information
+            var cat_id = [17]; // using cat for demo
+            var cat_name = 'cat';
+
+            // Annotations for images
+            // first index to index an object that stores annotations for an image
+            var Anno = new Array();
+
+            // Marks that show on image
+            // One for marker on magnifying glass and one for the markers on the <background></background>
+            var Marker = new Array();
+            var Marker_bg = new Array();
+
+            // set timer
+            var init_time;
+
+            $(window).load(function(){
+                init_time = $.now();
+                //category
+
+
+                // Answers
+                for (i=0; i<hints.length; i++){
+                    Anno[i] = new Object();
+                    Im[i] = new Image();
+                    Im[i].src = im_urls[i];
+                    Anno[i].cat_id = [hints[i].cat_id];
+                    Anno[i].x = hints[i].x;
+                    Anno[i].y = hints[i].y;
+                    // new annotations from this stage
+                    Anno[i].ans = [];
+                    Anno[i].annoloc = [];
+                    Anno[i].annoloc_percentage = [];
+                    for (var j=0; j < cat_id.length; j++){
+                        Anno[i].ans.push([[-1]]);
+                        Anno[i].annoloc.push([[-1,-1]]);
+                        Anno[i].annoloc_percentage.push([[-1,-1]]);
+                    }
+                }
+
+                imClick_Ctrl();
+                window.oncontextmenu = function() { return false };
+            });
+        </script>
+    </head>
+    <body>
+        <form id='mturk_form' action="MTURK_FORM_TO_SUBMIT">
+            <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
+            <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
+            <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+        </form> 
+        <div class='hint'><img class='hint-img'></div>
+        <div id="dialog-confirm" title="Save the Result?"></div>
+        <div class='container'>
+            <div class="instruction" id='title'>Instructions: </div>
+
+            <div style='border:solid; margin-bottom:10px; padding-left:5px; width:640px'>
+                <div id='instruction'>
+                    <div style='color: black; font: 16pt bold'>
+                        <ul>
+                            <li>Mark <span style='color:blue'>ALL cat(s)</span> in the image.
+                            <li> You only need to mark up to 10 instances if multiple cat(s) exist in the image.
+                            It is possible for some images that this object does not appear.</li>
+                            <li>The blinking icon (Hint) shows where one instance of the object could be. 
+                            The Hint is <span style='color:red;display:inline'>NOT ALWAYS</span> correct. <span style='color:red;display:inline'>Go NEXT</span> when no cat in the image.
+                            <li>Use key <span style='color:blue;display:inline'>N</span> to go to the next image and <span style='color:blue;display:inline'>B</span> to go back.
+                            <li><span style='color:black;'>There are 3 images in this HIT.</span>
+                        </ul>
+                    </div>
+                    <div class='step-div'>
+                        <img class='step-img' src='static/img/instance_spotting/example.jpg'>
+                    </div>
+                    <br>
+                </div>
+            </div>
+            <div class='category-panel' id='category-panel' style='width:800px'>
+                <div class="bgim" id="bgim"></div>
+                <div class='category' id='category' style='inline-block;float:left'>
+                    <div id='div-cat-img' ><img class='icon'></div>
+                    <div id='div-cat-name'></div>
+                </div>
+                <div id='div-cat-example' style='inline-block;float:left'>
+                    <div style='font-size:24pt;margin-top:20px' id='anno_status'></div>
+                </div>
+            </div>
+            <div id='button-panel' style='inline-block;float:left;width:100%'>
+                <input type='button' class='button' id="button-back" style='float:left' value='Back [B]'>
+                <input class='step2 step button' id="button-next" type='button' style='float:left; padding-right:10px' value='Next [N]' >
+                <input type='button' class='button' id="button-hint" style='float:left' value='Hint [H]'>
+            </div>
+            <div style="float:left">
+                <script type='text/javascript'>
+                    document.write("<div class='im-panel' id='im-panel-0'><div class='imdiv' id='imdiv-0'><img class='img' id='img-0' src='"+im_urls[0]+"'></img></div></div>");
+                    for (i=1; i < im_urls.length; i++){
+                        document.write("<div class='im-panel' id='im-panel-"+i+"'><div class='imdiv' id='imdiv-"+i+"'><img class='img' id='img-"+i+"'></img></div></div>");
+                    }
+                </script>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="static/js/coco_image_selection.js"></script>
+        <script src="static/js/mturk_form_submission.js"></script>
+        <link rel="stylesheet" type="text/css" href="static/css/coco_image_selection.css">
+        <script type="text/javascript">
+            var questions = new Array();
+            var init_time;
+            // TODO: define list of image urls to load in this page
+            var im_urls = ["https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/So_happy_smiling_cat.jpg/411px-So_happy_smiling_cat.jpg",
+                   "http://orig13.deviantart.net/ac5c/f/2011/345/8/0/business_cat_original_by_plasticpyre-d4irr6a.jpg",
+                   "https://c1.staticflickr.com/1/39/122530943_8f3369f2cb.jpg",
+                   "http://canineplanet.net/wp-content/uploads/2014/09/cute-dog-pictures.jpg",
+                   "http://orig04.deviantart.net/0d55/f/2009/019/0/3/cute_cat_by_flareon200.jpg",
+                   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKFyfuN5tJkC0UV1PXQLq2d6Ubw8f_KWRYn1rNZ6UYJDdNqNVP",
+                   "http://orig03.deviantart.net/0336/f/2012/204/d/f/cute_cat_by_animexchibixmanga-d58ajxe.jpg",
+                   "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR-Mks10gAfyzFUEFgdISlD-2N-ymFK3KiirV1tl_gEyLTVy0ju"];
+
+            // ================================================================
+            // Dynamically generate comments when page is ready
+            // ================================================================
+            $(window).load(function(){
+                questions = initialize_grid(im_urls);
+                init_time = $.now();            
+            });
+        </script>
+    </head>
+    <body>
+        <!--
+        the form that defines what values are going to be sent to MTurk
+        the action of form and values for hitId, assignmentId, and workerId should be modified
+        -->
+        <form id='mturk_form' action="MTURK_FORM_TO_SUBMIT">
+            <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
+            <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
+            <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+        </form> 
+        <div class='container'>
+            <div id='title' >
+                <!-- TODO: Write your instruction here -->
+                Task: select all dog images.
+            </div>
+            <br>
+            <div id='instruction'>
+                <!-- TODO: Write your instruction here -->
+                Instruction: click to select dog images.
+            </div>
+
+            <div>
+                <!-- image div for displaying grid -->
+                <div id='imdiv'></div>
+
+                <!-- button for submitting the HIT -->
+                <br>
+                <div id='bottom'>
+                    <input id='button' type='button' value='submit this HIT!' style='font-size:16pt' onclick='submit_form()'>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,491 @@
+<!--
+This segmentation UI was modified from OpenSurfaces project by S. Bell et al.:
+https://github.com/seanbell/opensurfaces
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+	<link href="static/opensurfaces/css/jquery-ui-1.9.1.custom.min.css" rel="stylesheet" type="text/css"/>
+	<link href="static/opensurfaces/css/bootstrap-2.2.1.min.css" rel="stylesheet" type="text/css"/>
+	<link href="static/opensurfaces/css/mturk.css" rel="stylesheet" type="text/css" />
+
+	<style>
+		canvas { border: 1px solid #969696; }
+		body { padding: 0 }
+    </style>
+    <!-- BEGIN: OPENSURFACE ADD-ON, ADDED BY Tsung-Yi Lin -->
+    <link href="static/css/coco_instance_spotting.css" rel="stylesheet" type="text/css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript" src="static/opensurfaces/js/coco_instance_segmentation.js"></script>
+    <script>
+        var init_time = $.now();
+        var Anno = [];
+        // instance annotations that were collected from the instance spotting stage
+        Anno.push([0.3,0.5]);
+
+        // there is a cat has been annotated before (shown in blue) in the demo
+        // the workers should progressive annotate all cats in the image
+        // the interface should show instance segmentation specified by:
+        // polys: [polygon1, polygon2]
+        // polygon: [x1,y1,x2,y2,...,xn,yn] x, y are fractions of image width and height
+        var polys = [[0.17821553290059533,0.4564724718351938,0.1601562393003034,0.4472112956299159,0.14904282785396986,0.4342456489425268,0.14904282785396986,0.42313223749619333,0.13654023997684467,0.4064621203266931,0.135151063546053,0.36015623930030344,0.14765365142317816,0.3119981230328583,0.1448752985615948,0.28977130014019126,0.13237271068446962,0.2656922420064687,0.1309835342536779,0.24531765435485722,0.13654023997684467,0.21753412573902353,0.15043200428476153,0.21197742001585673,0.18377223862376202,0.24161318387274608,0.21711247296276254,0.2527265953190796,0.29351717665630533,0.2397609486316905,0.3171331759797641,0.2397609486316905,0.3449167045955978,0.228647537185357,0.40048376182726525,0.24902212483696842,0.4477157604741826,0.228647537185357,0.5074503469982252,0.22679530194430142,0.5769091685378096,0.22679530194430142,0.6533138722313524,0.25643106580119074,0.7102701058938116,0.28051012393491337,0.775561398141021,0.3231115344791918,0.8519661018345637,0.3879397679161372,0.8589119839885221,0.46573364804047174,0.8630795132808972,0.5416752929237507,0.8561336311269389,0.5805722329859179,0.8575228075577305,0.6213214082891407,0.8533552782653554,0.6528094073870856,0.8186258674955632,0.6435482311818077,0.7936206917413128,0.6435482311818077,0.7422211638020204,0.673183995038697,0.7269402230633119,0.673183995038697,0.5991359914304766,0.6305825844944186,0.5921901092765182,0.6046512911196404,0.6005251678612683,0.5916856444322514,0.5991359914304766,0.5639021158164177,0.6171952850307686,0.5527887043700841,0.6033035207228516,0.5379708224416394,0.5519039927835593,0.5287096462363615,0.5116178762906003,0.5046305881026389,0.45049411333576606,0.4675858832815273,0.4199322318583489,0.4472112956299159,0.39214870324251516,0.41016659080880424,0.34213835173401447,0.39720094412141516,0.268512000902055,0.38423529743402607,0.22266917868592925,0.39905317936247076,0.20738823794722072,0.4305411784604156,0.1879397679161371,0.45276800135308265]];
+    </script>
+    <!-- END: OPENSURFACE ADD-ON, ADDED BY Tsung-Yi Lin -->
+
+</head>
+<form id='mturk_form' action="MTURK_FORM_TO_SUBMIT">
+	<input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
+	<input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
+	<input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+	<input type="hidden" id="isObj" name="isObj" value='0'>
+</form>
+<body data-spy="scroll" data-target=".navbar" data-offset="50">
+<!-- BEGIN MAIN UI -->
+	<div id='content-container'>
+		<div id="mt-top-nohover">
+			<div id="mt-instructions">
+                <div>
+					Instructions: carefully trace around regions that have a <span style='color:blue;font-size:18pt'>single cat </span>indicated by the icon.
+                    <div>
+                        <div style='height:100px;border-width:2px;display:inline-block'><img style='height:100px' src='static/opensurfaces/examples/cat-1.jpg'></div>
+                        <div style='height:100px;border-width:2px;display:inline-block'><img style='height:100px' src='static/opensurfaces/examples/cat-2.jpg'></div>
+                        <div style='height:100px;border-width:2px;display:inline-block'><img style='height:100px' src='static/opensurfaces/examples/cat-3.jpg'></div>
+                        <div>Not sure what object cat is? Click on <a target='blank' href='https://www.google.com/search?hl=en&authuser=0&site=imghp&tbm=isch&q=cat'>here</a> to see examples!</div>
+                    </div>
+				</div>
+				<span class="pull-right">
+                    <!--					<button type="button" id='btn-submit' class="btn btn-primary" disabled="disabled">Submit</button>  -->
+				</span>
+			</div>
+
+			<div id="ui-controls" class="ui-controls-top">
+                <div class="ui-controls-top">
+				<span class="btn-group" data-toggle="buttons-radio">
+					<button id='btn-draw' type="button" class="btn" disabled="disabled">
+						<i class="icon-pencil"></i> Draw (D)</button>
+					<button id='btn-edit' type="button" class="btn" disabled="disabled">
+						<i class="icon-move"></i> Adjust (A)</button>
+				</span>
+				<span class="btn-group">
+					<button id='btn-undo' type="button" disabled="disabled" class="btn">
+						<i class="icon-circle-arrow-left"></i> Undo (Ctrl-Z)</button>
+					<button id='btn-redo' type="button" disabled="disabled" class="btn">
+						<i class="icon-circle-arrow-right"></i> Redo (Ctrl-Y)</button>
+				</span>
+				<span class="btn-group">
+					<button id='btn-close' type="button" disabled="disabled" class="btn">
+						<i class="icon-ok-sign"></i> Close (Right-click)</button>
+					<button id='btn-delete' type="button" disabled="disabled" class="btn">
+						<i class="icon-remove"></i> Delete (Delete)</button>
+                </span>
+            </div>
+                <div class="ui-controls-top">
+                <span class="btn-group">
+					<button id='btn-move' type="button" class="btn">
+				    <i class="icon-resize-small"></i> Move to Target (M)</button>
+					<button id='btn-zoom-in' type="button" class="btn">
+				    <i class="icon-resize-small"></i> Zoom In (I)</button>
+					<button id='btn-zoom-out' type="button" class="btn">
+				    <i class="icon-resize-small"></i> Zoom Out (O)</button>
+					<button id='btn-zoom-reset' type="button" class="btn">
+				    <i class="icon-resize-small"></i> Reset Zoom (ESC)</button>
+				</span>
+                </div>
+            </div>
+            <div class="ui-controls-top">
+            <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true" id="btn-submit" disabled="disabled">Next</button>
+				<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true" id="btn-submit-noobj">No cat in this image</button>
+                <a href="#modal-examples" role="button" id='btn-example' class="btn btn-warning" data-toggle="modal">Examples</a>
+                <a href="#modal-instructions" role="button" class="btn btn-warning" id='btn-instructions' data-toggle="modal">Instructions</a>
+                <div class="ui-controls-top" style='font-size:14pt'>
+                Tips: Using <span style='color:blue'>"Move to taget" (M) </span>  and <span style='color:blue'>"Zoom In" (I) </span> for the small object!  <br>
+                Use <span style='color:blue'>Ctrl-Z</span> to undo a click. <br>
+                Please do <span style='color:red'>Only 1 object</span> at each turn. <br>
+                <span style='color:red'> Draw multiple polygons if needed!! </span><br>
+                
+            </div>
+            </div>
+
+		</div>
+		<div id="mt-container"></div>
+	</div>
+<!-- END MAIN UI -->
+
+<!-- BEGIN MODALS -->
+	<!-- Examples dialog -->
+	<div class="modal hide fade" id="modal-examples" tabindex="-1" role="dialog"
+		aria-labelledby="modal-instructions-label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal"
+				aria-hidden="true">&times;</button>
+            <h3 id="modal-examples-label">Good Examples of cat segmentations</h3>
+		</div>
+		<div class="modal-body">
+			<div class="container-fluid">
+                <p>Not sure what the object "cat" is? Click on <a target='blank' href='https://www.google.com/search?hl=en&authuser=0&site=imghp&tbm=isch&q=cat'>here</a> to see examples!</p>
+				<div class="row-fluid" style='width:200%'>
+					<div class="span4">
+						<div class="thumbnail">
+                            <img src="static/opensurfaces/examples/cat-1.jpg"  alt="" />
+                            <img src="static/opensurfaces/examples/cat-2.jpg"  alt="" />
+                            <img src="static/opensurfaces/examples/cat-3.jpg"  alt="" />
+						</div>
+					</div>
+                </div>
+				<div class="row-fluid" style='width:200%'>
+					<div class="span4">
+						<div class="thumbnail">
+						</div>
+                    </div>
+                </div>
+				<div class="row-fluid" style='width:200%'>
+					<div class="span4">
+						<div class="thumbnail">
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+    </div>
+	<!-- Instructions dialog -->
+	<div class="modal hide fade" id="modal-instructions" tabindex="-1" role="dialog"
+		aria-labelledby="modal-instructions-label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal"
+				aria-hidden="true">&times;</button>
+			<h3 id="modal-instructions-label">Instructions</h3>
+		</div>
+		<!-- coco instruction -->
+		        <div class="modal-body">
+            <div class="container-fluid">
+                <h2>How to submit</h2>
+                <p> Trace the shape for the indicated object in the image.
+                Click <i>Next</i> after you draw a shape.
+                    Skip an image by clicking <i> No {{cat.name}} in this image</i> if there is no indicated object.
+                    The HIT will be submitted after you finished {{max_count}} objects.</p>
+                <h2>What to draw</h2> <p>Please draw the shape around regions that have a
+                <i>single</i> {{cat.name}}.
+
+                Make the region as tight as possible.  <b>Your shape should closely
+                    follow the object boundary.</b>
+                <!-- Use the &quot;adjust&quot; button (or press 'A') to improve the shape boundary.</p> -->
+                Draw multiple regions when the visible parts of object are disjointed. Below are examples of a person and a bike that break into two parts.
+                <div class="row-fluid" style='width:100%'>
+                    <div class="span4">
+                        <div class="thumbnail">
+                            <img src="static/opensurfaces/examples/disjointed-objects.jpg"  alt="" />
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Good examples</h2>
+                <div class="row-fluid" style='width:200%'>
+                    <div class="span4">
+                        <div class="thumbnail">
+                            <img src="static/opensurfaces/examples/good-examples.jpg"  alt="" />
+                        </div>
+                    </div>
+                </div>
+                <br/>
+
+                <h2>Bad examples</h2>
+                <p style='color:red'>We will reject HITs that do not follow the instructions.</p>
+                <div class="row-fluid" style='width:200%'>
+                    <div class="span4">
+                        <div class="thumbnail">
+                            <img src="static/opensurfaces/examples/bad-examples.jpg"  alt="" />
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Use Zoom For Small Objects</h2>
+                <div class="row-fluid" style='width:200%'>
+                    <div class="span4">
+                        <div class="thumbnail">
+                            <img src="static/opensurfaces/examples/zoom.jpg"  alt="" />
+                        </div>
+                    </div>
+                </div>
+                <h2>How to draw</h2>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <ul class="thumbnails">
+                            <li class="span4"> <div class="thumbnail"><p class="caption">
+                                <span class="badge">1</span> Click on the object boundary.</p>
+                                <img src="static/opensurfaces/img/draw1.jpg" alt=""></div> </li>
+                            <li class="span4"> <div class="thumbnail"><p class="caption">
+                                <span class="badge">2</span> Continue clicking along the boundary.</p>
+                                <img src="static/opensurfaces/img/draw5.jpg" alt=""></div> </li>
+                                                                                                                                                                                                                                           1,0-1         Top
+                            <li class="span4"> <div class="thumbnail"><p class="caption">
+                                <span class="badge">2</span> Continue clicking along the boundary.</p>
+                                <img src="static/opensurfaces/img/draw5.jpg" alt=""></div> </li>
+                            <li class="span4"> <div class="thumbnail"><p class="caption">
+                                <span class="badge">3</span> Right-click to close the polygon.</p>
+                                <img src="static/opensurfaces/img/draw6.jpg" alt=""></div> </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <p>To close the shape, you do not need to click near the first point. You can
+                right-click to connect the first and last point.</p>
+
+                <h2>Adjust your shapes</h2>
+                <p>After drawing a polygon, please adjust its edges so that it better fits the true boundary.
+                When you are done adjusting, switch back to &quot;Draw&quot; mode to draw more polygons.</p>
+                <p>You can use the keyboard shortcut D and A to switch modes quickly.</p>
+
+                <div class="row-fluid">
+                    <div class="span12">
+                        <ul class="thumbnails">
+                            <li class="span4"> <div class="thumbnail"><p class="caption">
+                                <span class="badge">1</span> Switch to &quot;Adjust&quot; mode.</p>
+                                <img src="static/opensurfaces/img/adjust0.jpg" alt=""></div> </li>
+                            <li class="span4"> <div class="thumbnail"><p class="caption">
+                                <span class="badge">2</span> Click on the polygon.</p>
+                                <img src="static/opensurfaces/img/adjust1.jpg" alt=""></div> </li>
+                            <li class="span4"> <div class="thumbnail"><p class="caption">
+                                <span class="badge">3</span> Drag the small white circles.</p>
+                                <img src="static/opensurfaces/img/adjust2.jpg" alt=""></div> </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2>Zoom in to see better</h2>
+                <p>Scroll with the mouse wheel to zoom in.  Use move to target (M) to center the target object.  Zoom In (I) and Zoom out (O) help you to zoom to the object.</p>
+                <br/>
+
+                <h2>Move around in the image</h2>
+                <p>Press 'space' and drag with the mouse to move around in the image (panning).  You can also press the arrow keys to move.</p>
+                <br/>
+
+                <h2>Other controls</h2>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <img src="static/opensurfaces/examples/control-bar.jpg" alt="" />
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <dl class="dl-horizontal">
+                            <dt>Undo</dt> <dd>If you make a mistake, click &quot;Undo&quot; or press Ctrl-Z.</dd>
+                            <dt>Redo</dt> <dd>You can also re-do an action with Ctrl-Y.</dd>
+                            <dt>Close</dt> <dd>To close a polygon, right-click on the image or you can click the &quot;Close&quot; button.</dd>
+                            <dt>Delete</dt> <dd>You can delete polygons by selecting them with the &quot;Adjust&quot; button and pressing delete.</dd>
+                            <dt>Move to Target</dt> <dd>Move to the target object that you need to segment. Shortcut: M</dd>
+                            <dt>Zoom In</dt> <dd>Click &quot;Zoom in&quot; button or press I for shortcut. </dd>
+                            <dt>Zoom out</dt> <dd>Click &quot;Zoom out&quot; button or press O for shortcut.</dd>
+                            <dt>Reset Zoom</dt> <dd>When zoomed in, you you can click &quot;Reset Zoom&quot; to zoom out again.</dd>
+                            <dt>Next</dt> <dd>Proceed to next image.</dd>
+                            <dt>No object in this image</dt> <dd>Skip this image if no object present.</dd>
+                            <dt>Examples</dt> <dd>Show examples of good segmentation for this object.</dd>
+                        </dl>
+                    </div>
+                </div>
+                <h2>Acknowledgements</h2>
+                    This UI is modified from OpenSurfaces Project created by Cornell Graphics and Vision Group.
+                <br/>
+            </div>
+        </div>
+		<!-- coco instruction end -->
+
+
+		<div class="modal-footer">
+			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+
+	<!-- Loading bar -->
+	<div class="modal hide fade" id="modal-loading" tabindex="-1" role="dialog" aria-labelledby="modal-loading-label" aria-hidden="true">
+		<div class="modal-header">
+			<h3 id="modal-loading-label"></h3>
+		</div>
+		<div class="modal-body">
+			<div class="progress progress-striped active">
+				<div class="bar" style="width: 100%;">Please Wait</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Error message -->
+	<div class="modal hide fade" id="modal-error" tabindex="-1" role="dialog" aria-labelledby="modal-error-label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h3 id="modal-error-label">Error!</h3>
+		</div>
+		<div class="modal-body">
+			<div id="modal-error-message">
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">OK</button>
+		</div>
+	</div>
+
+	<!-- Are you sure question -->
+	<div class="modal hide fade" id="modal-areyousure" tabindex="-1" role="dialog"
+		aria-labelledby="modal-areyousure-label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h3 id="modal-areyousure-label">Are you sure?</h3>
+		</div>
+		<div class="modal-body">
+			<p id="modal-areyousure-message"></p>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true" id="modal-areyousure-no">No</button>
+			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true" id="modal-areyousure-yes">Yes</button>
+		</div>
+	</div>
+
+	<!-- Feedback survey -->
+	<div class="modal hide fade" id="modal-feedback" tabindex="-1" role="dialog"
+		aria-labelledby="modal-feedback-label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal"
+				aria-hidden="true">&times;</button>
+			<h3 id="modal-feedback-label">Feedback</h3>
+		</div>
+		<div class="modal-body">
+			<div id="modal-feedback-prompt"></div>
+			<form id='modal-feedback-form' class='form-horizontal'>
+
+				<div class="control-group">
+					<label class="control-label" for="feedback-thoughts">What did you think of this task?</label>
+					<div class="controls">
+						<textarea id="feedback-thoughts" rows="6"></textarea>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="feedback-understand">What parts didn't you understand?</label>
+					<div class="controls">
+						<textarea id="feedback-understand" rows="6"></textarea>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="feedback-other">Any other feedback, improvements, or suggestions?</label>
+					<div class="controls">
+						<textarea id="feedback-other" rows="6"></textarea>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true" id="modal-feedback-cancel">Cancel</button>
+            <!--			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true" id="modal-feedback-submit">Submit</button> -->
+		</div>
+	</div>
+
+	<!-- Script for feedback survey -->
+	<script type="text/javascript">
+		window.ask_for_feedback = false;
+		window.feedback_bonus = '$0.02';
+
+		window.show_modal_feedback = function(label_message, prompt_message, on_submit) {
+			$('#modal-feedback-label').empty();
+			$('#modal-feedback-bonus').empty();
+			$('#modal-feedback-prompt').empty();
+			if (label_message !== undefined) {
+				$('#modal-feedback-label').html(label_message);
+			}
+			if (prompt_message !== undefined) {
+				$('#modal-feedback-prompt').html(prompt_message);
+			}
+			$('#modal-feedback').modal('show');
+			if (on_submit !== undefined) {
+				$('#modal-feedback-submit').off('click').on('click', on_submit);
+			}
+		};
+		window.get_modal_feedback = function() {
+			var feedback = {};
+			var gender = $('input[name=feedback-gender]:checked', '#modal-feedback-form').val();
+			if (gender) {
+				feedback.gender = gender;
+			}
+			var names = [
+
+				'thoughts', 'understand', 'other'
+			];
+			for (var i = 0; i < names.length; i++) {
+				var value = $.trim($('#feedback-' + names[i]).val());
+				if (value) {
+					feedback[names[i]] = value;
+				}
+			}
+			return feedback;
+		};
+	</script>
+
+	<!-- Message about valid polygons -->
+	<div class="modal hide fade" id="poly-modal-intersect" tabindex="-1" role="dialog"
+		aria-labelledby="modal-intersect-label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal"
+				aria-hidden="true">&times;</button>
+			<h3 id="poly-modal-intersect-label">Not a valid polygon!</h3>
+		</div>
+		<div class="modal-body">
+			<p>Polygons must contain at least
+			<strong>four</strong>
+			points and cannot intersect themselves.  Try adding more points so
+			that the first and last point can connect.</p>
+
+			<div class="thumbnail span2">
+				<img src="static/opensurfaces//img/bad-close.jpg" alt=""/>
+				<p class="mt-caption">This polygon cannot close.</p>
+			</div>
+			<div class="thumbnail span2">
+				<img src="static/opensurfaces//img/bad-vertex.jpg" alt=""/>
+				<p class="mt-caption">This edge cannot be added.</p>
+			</div>
+			<div class="thumbnail span2">
+				<img src="static/opensurfaces//img/good-close.jpg" alt=""/>
+				<p class="mt-caption">This polygon can be closed.</p>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">OK</button>
+		</div>
+	</div>
+<!-- END MODALS -->
+
+
+<!-- BEGIN MAIN SCRIPTS -->
+	<script type="text/javascript">
+		/* photo_url:  URL of the photo to be shown
+		   photo_id: database ID of the photo being segmented.  The results
+		   will be returned in a JSON object with the format:
+ 		       {"photo_id": [[x1,y1,x2,y2,...], [x1,y1,x2,y2,...]]}
+ 		   otherwise, photo_id is not used.
+ 		*/
+ 		// giving a fake photo_id
+		window.template_args = {
+            // BEGIN: OPENSURFACE ADD-ON, ADDED BY Tsung-Yi Lin
+            photo_url: "static/img/demo/cat.jpg",
+            photo_id: 1,
+            // END: OPENSURFACE ADD-ON, ADDED BY Tsung-Yi Lin
+		};
+
+		// the user must submit this many shapes before they may submit:
+		window.min_shapes = 1;
+
+		// each polygon must have at least this many vertices:
+        window.min_vertices = 4;
+	</script>
+
+	<!-- merged libraries -->
+	<script type="text/javascript" src="static/opensurfaces/js/build-js.js"></script>
+	<!-- compiled coffeescript -->
+	<script type="text/javascript" src="static/opensurfaces/js/build-coffee-coco.js"></script>
+<!-- END MAIN SCRIPTS -->
+
+</body>
+</html>
+

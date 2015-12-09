@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link rel="stylesheet" href='https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css' >
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <script src="static/js/kinetic-v5.1.0.min.js"></script>
+
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+      .modal-backdrop {background: none;}
+    </style>
+    <script>
+        DRAW = 1;
+        ERASE = 0;
+        draw_state = DRAW;
+        var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+        // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+        var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+        var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+        // At least Safari 3+: "[object HTMLElementConstructor]"
+        var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
+        var isIE = /*@cc_on!@*/false || !!document.documentMode;   // At least IE6
+        $(window).load(function(){
+            if (!isChrome){
+                alert('Sorry. This HIT only supports Chrome');
+                $('.btn').attr('disabled', 'disabled');
+            }
+            $('#btn-draw').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 68 });
+            })
+            $('#btn-erase').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 69 });
+            })
+            $('#btn-zoom-in').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 90 });
+            })
+            $('#btn-zoom-out').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 88 });
+            })
+
+            // uncomment submit form if you'd like to submit to MTurk
+            $('#btn-submit').on('click', function(){
+                // the show the annotated base64 region
+                var ans = explictDrawImg.src;
+                console.log(ans);
+                $("input[name='isObj']").val(1)
+                //submit_form();
+
+            })
+            $('#btn-submit-no-obj').on('click', function(){
+                $("input[name='isObj']").val(0)
+                // submit form if there is no crowd
+                //submit_form();
+            })
+
+                // show dialog
+                $('.modal').modal('toggle');
+        });
+        function draw_state_toggle(){
+            draw_state = (draw_state == DRAW) ? ERASE: DRAW;
+            if (draw_state == DRAW){
+                $('#btn-erase').removeClass('active')
+                $('#btn-draw').addClass('active')
+                glassmask.fill('blue');
+                jQuery.event.trigger({ type : 'mousemove' });
+            }else{
+                $('#btn-draw').removeClass('active')
+                $('#btn-erase').addClass('active')
+                glassmask.fill('white');
+                jQuery.event.trigger({ type : 'mousemove' });
+            }
+        }
+        // ==================== submit =============================
+        var init_time = $.now();
+        function submit_form(){
+            $('.btn').attr("disabled", "disabled");
+            var c = 0;
+            // send back annotated region as base64 image
+            var ans = explictDrawImg.src;
+            var duration = parseFloat($.now()-init_time)/1000;
+            duration = duration.toString();
+            $("input[name='ans']").val(ans)
+            $("input[name='duration']").val(duration)
+            resp =
+                {'ans':ans,
+                 'duration': duration,
+                 'assignmentId':$('#assignmentId').val(),
+                 'workerId': $('#workerId').val(),
+                 'isObj': $('#isObj').val(),
+            };
+            // AJAX
+            $.ajax({
+              type: "POST",
+              url: window.location.href,
+              data: {'resp':JSON.stringify(resp),
+                    },
+            }).done(function(data) {
+                  if (data == 'reload'){
+                      window.location.reload();
+                  }else if (data = 'submit'){
+                      $('#mturk_form').submit();
+                  }
+            }).fail( function(data){
+                alert('Timeout, please click "Next" again to submit your HIT');
+                $('.btn').removeAttr('disabled');
+            }) ;
+        }
+
+    </script>
+  </head>
+  <form id='mturk_form' action="MTURK_FORM_TO_SUBMIT">
+    <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
+    <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
+    <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+    <input type="hidden" id="isObj" name="isObj" value='0'>
+  </form>
+  <body>
+
+
+  <div class="modal hide fade" style="width:800px">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>Examples of expected results:</h3>
+    </div>
+    <div class="modal-body">
+      <img src="static/img/crowd_labeling/example-1.jpg" style='width:250px'>
+      <img src="static/img/crowd_labeling/example-2.jpg" style='width:500px'>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn">Close</a>
+      <!--<a href="#" class="btn btn-primary">Save changes</a>-->
+    </div>
+  </div>
+
+
+
+
+    <div style='margin-left:5pt; margin-top:5pt'>
+      <div style='font-size:16pt'>
+          Draw all unlabeled <span style='color:blue'>cat(s)</span> in the image.
+          <li style='font-size:12pt'> Find and draw on <span style='color:blue'>all cat(s)</span> that haven't been labeled.
+          <li style='font-size:12pt'> <span style='color:red'>No need</span> to draw on previously labeled (green) regions. It's fine to overlap.
+      </div>
+      <div style='margin-top:3px'>
+      <span>
+          <input id='btn-submit' type="submit" class="btn btn-primary" value="Submit">
+      </span>
+      <span>
+          <input id='btn-submit-no-obj' type="submit" class="btn btn-primary" value="No unlabeled cat(s)">
+      </span>
+      </div>
+      <span class="btn-group" >
+        <button id='btn-draw' type="button" class="btn active">
+            <i class="icon-pencil"></i> Draw (D)</button>
+          <button id='btn-erase' type="button"  class="btn">
+            <i class="fa fa-eraser"></i> Erase (E)</button>
+      </span>
+
+      <span class="btn-group" >
+        <button id='btn-zoom-in' type="button" class="btn">
+            <i class="icon-zoom-in"></i> Zoom In (Z)</button>
+          <button id='btn-zoom-out' type="button"  class="btn">
+            <i class="icon-zoom-out"></i> Zoom Out (X)</button>
+      </span>
+
+      <canvas id="canvas-img" style="display:none"></canvas>
+      <div id="container"style='margin-top:3px'></div>
+      <div id="container-invisible"></div>
+
+    </div>
+    <script>
+      // the demo has a cat that has been labeled in the instance segmentation stage.
+      // in the MS COCO paper, we stopped annotating individual instance and switched to crowd annotation when there are 10+ instance have been annotated.
+      // for simplicity, this demo only shows one annotated cat.
+      // polys: [instance1, instance2]
+      // instance: [polygon1, polygon2]
+      // polygon: [x1,y1,x2,y2,...,xn,yn] x, y are fractions of image width and height
+      var polygons = {"polys":[[[0.17821553290059533,0.4564724718351938,0.1601562393003034,0.4472112956299159,0.14904282785396986,0.4342456489425268,0.14904282785396986,0.42313223749619333,0.13654023997684467,0.4064621203266931,0.135151063546053,0.36015623930030344,0.14765365142317816,0.3119981230328583,0.1448752985615948,0.28977130014019126,0.13237271068446962,0.2656922420064687,0.1309835342536779,0.24531765435485722,0.13654023997684467,0.21753412573902353,0.15043200428476153,0.21197742001585673,0.18377223862376202,0.24161318387274608,0.21711247296276254,0.2527265953190796,0.29351717665630533,0.2397609486316905,0.3171331759797641,0.2397609486316905,0.3449167045955978,0.228647537185357,0.40048376182726525,0.24902212483696842,0.4477157604741826,0.228647537185357,0.5074503469982252,0.22679530194430142,0.5769091685378096,0.22679530194430142,0.6533138722313524,0.25643106580119074,0.7102701058938116,0.28051012393491337,0.775561398141021,0.3231115344791918,0.8519661018345637,0.3879397679161372,0.8589119839885221,0.46573364804047174,0.8630795132808972,0.5416752929237507,0.8561336311269389,0.5805722329859179,0.8575228075577305,0.6213214082891407,0.8533552782653554,0.6528094073870856,0.8186258674955632,0.6435482311818077,0.7936206917413128,0.6435482311818077,0.7422211638020204,0.673183995038697,0.7269402230633119,0.673183995038697,0.5991359914304766,0.6305825844944186,0.5921901092765182,0.6046512911196404,0.6005251678612683,0.5916856444322514,0.5991359914304766,0.5639021158164177,0.6171952850307686,0.5527887043700841,0.6033035207228516,0.5379708224416394,0.5519039927835593,0.5287096462363615,0.5116178762906003,0.5046305881026389,0.45049411333576606,0.4675858832815273,0.4199322318583489,0.4472112956299159,0.39214870324251516,0.41016659080880424,0.34213835173401447,0.39720094412141516,0.268512000902055,0.38423529743402607,0.22266917868592925,0.39905317936247076,0.20738823794722072,0.4305411784604156,0.1879397679161371,0.45276800135308265]]]};
+
+
+      var polygonLayer = new Kinetic.Layer();
+      var baseLayer = new Kinetic.Layer();
+      var glassLayer = new Kinetic.Layer();
+      var baseDrawLayer = new Kinetic.Layer();
+      var explicitLayer = new Kinetic.Layer();
+      var glassDrawLayer = new Kinetic.Layer();
+      var glassPolyDrawLayer = new Kinetic.Layer();
+
+      var glassmask;
+      var baseDraw;
+      var glassDraw;
+      var glassPolyDraw;
+
+      var explictDrawImg = new Image();
+      var polyImg = new Image();
+      var isdrew = false;
+      //var isdrew = true;
+
+      var R = 25;
+      var zoom = 4;
+
+      var lineThickness = 10;
+      var painting = false;
+      var startX;
+      var startY;
+
+      var imageObj = new Image();
+      imageObj.onload = function() {
+        var stage = new Kinetic.Stage({
+          container: 'container',
+          width: imageObj.width,
+          height: imageObj.height
+        });
+        stage.states = new Object();
+        stage.statesisdrawbrush = true;
+        /* initialize explicit layer */
+        var canvas = $('#canvas-img');
+        canvas.width =imageObj.width;
+        canvas.height =imageObj.height;
+        // hidden context for drawing
+        var ctx_img = canvas[0].getContext("2d");
+        //explictDrawImg = new Image(imageObj.width, imageObj.height);
+        explictDrawImg = imageObj.cloneNode();
+        /* ======= base image layer ==============*/
+
+        var imageBase = new Kinetic.Image({
+          x: 0,
+          y: 0,
+          image: imageObj,
+          width: imageObj.width,
+          height: imageObj.height
+        });
+
+        // add the shape to the layer
+        baseLayer.add(imageBase);
+
+        // add the layer to the stage
+        stage.add(baseLayer);
+
+        /* ======= magnifying glass layer ==============*/
+
+        var glass = new Kinetic.Circle({
+                fillPatternImage: imageObj,
+                fillPatternScaleX: zoom,
+                fillPatternScaleY: zoom,
+                fillPatternOffsetX: 256,
+                fillPatternOffsetY: 256,
+                x: 256,
+                y: 256,
+                radius: R*4,
+                stroke: '#00ffff',
+                strokeWidth: 4/zoom,
+                opacity: 1,
+            });
+        glassmask = new Kinetic.Circle({
+                fill: 'blue',
+                x: 256,
+                y: 256,
+                radius: R,
+                fill: 'blue',
+                //strokeWidth: 4,
+                opacity: 0.5,
+            });
+            glassmask.setStroke(null);
+        glassLayer.add(glass);
+        glassLayer.add(glassmask);
+        stage.add(glassLayer);
+        glassLayer.moveToTop();
+
+        function glassMove(x,y){
+          glass.x(x);
+          glass.y(y);
+          glassDraw.x(x);
+          glassDraw.y(y);
+          glassPolyDraw.x(x);
+          glassPolyDraw.y(y);
+          glassDraw.fillPatternImage(explictDrawImg);
+          glassZoom();
+        }
+
+        function glassZoom(){
+          var x = glass.x();
+          var y = glass.y();
+
+          if (zoom < 1){
+            glass.radius(R*4);
+            //glass.radius(R/zoom);
+            glass.fillPatternOffsetX(x);
+            glass.fillPatternOffsetY(y);
+            glass.fillPatternScaleX(1.0);
+            glass.fillPatternScaleY(1.0);
+            glass.strokeWidth(4);
+            glassmask.radius(R/zoom);
+            glassmask.x(x);
+            glassmask.y(y);
+
+            glassDraw.fillPatternOffsetX(x);
+            glassDraw.fillPatternOffsetY(y);
+            glassDraw.fillPatternScaleX(1.0);
+            glassDraw.fillPatternScaleY(1.0);
+
+            glassPolyDraw.fillPatternOffsetX(x);
+            glassPolyDraw.fillPatternOffsetY(y);
+            glassPolyDraw.fillPatternScaleX(1.0);
+            glassPolyDraw.fillPatternScaleY(1.0);
+          }else{
+            //glass.fillPatternOffsetX(x - R/2/zoom);
+            //glass.fillPatternOffsetY(y - R/2/zoom);
+            glass.radius(R*4);
+            glass.fillPatternOffsetX(x);
+            glass.fillPatternOffsetY(y);
+            glass.fillPatternScaleX(zoom);
+            glass.fillPatternScaleY(zoom);
+            glass.strokeWidth(4/zoom);
+            glassmask.radius(R);
+            glassmask.x(x);
+            glassmask.y(y);
+
+            glassDraw.fillPatternOffsetX(x);
+            glassDraw.fillPatternOffsetY(y);
+            glassDraw.fillPatternScaleX(zoom);
+            glassDraw.fillPatternScaleY(zoom);
+
+            glassPolyDraw.fillPatternOffsetX(x);
+            glassPolyDraw.fillPatternOffsetY(y);
+            glassPolyDraw.fillPatternScaleX(zoom);
+            glassPolyDraw.fillPatternScaleY(zoom);
+          }
+          //glassLayer.draw();
+          //glassPolyDrawLayer.draw();
+          glassDrawLayer.draw();
+          glassLayer.draw();
+          glassPolyDrawLayer.draw();
+          /* hide drawing shape */
+              glassLayer.moveToTop()
+          glassDrawLayer.moveToTop();
+          if (!isdrew){glassLayer.moveToTop();}
+          glassPolyDrawLayer.moveToTop();
+        }
+
+
+        /* ============ drawing layer ==============*/
+        stage.add(baseDrawLayer);
+        stage.on('mousedown', onmousedown);
+        function onmousedown(ev) {
+            //startX = parseInt(ev.evt.x);
+            //startY = parseInt(ev.evt.y);
+            startX = ev.evt.x - $('#container').position().left + window.pageXOffset;;
+            startY = ev.evt.y - $('#container').position().top + window.pageYOffset;
+            if (typeof startX === 'undefined'){
+                startX = ev.evt.clientX - $('#container').position().left + window.pageXOffset;
+                startY = ev.evt.clientY - $('#container').position().top + window.pageYOffset;
+            }
+            painting = true;
+            if (zoom < 1){
+                var lineThickness = R / zoom;
+            }else{
+                var lineThickness = R /zoom;
+            }
+            brush_draw(startX, startY, lineThickness);
+         }
+         stage.on('mouseup', function (ev) {
+            painting = false;
+         });
+
+         stage.on('mousemove', onmousemove)
+         function onmousemove(ev) {
+            if (zoom < 1){
+                var lineThickness = R / zoom;
+            }else{
+                var lineThickness = R /zoom;
+            }
+
+            var mouseX = ev.evt.x - $('#container').position().left + window.pageXOffset;;
+            var mouseY = ev.evt.y - $('#container').position().top + window.pageYOffset;
+            if (typeof mouseX === 'undefined'){
+                mouseX = ev.evt.clientX - $('#container').position().left + window.pageXOffset;;
+                mouseY = ev.evt.clientY; - $('#container').position().top + window.pageYOffset;
+            }
+            glassMove(mouseX, mouseY);
+
+            if (!painting) {
+                return;
+            }
+            var dx = mouseX - startX;
+            var dy = mouseY - startY;
+            var rectCount = Math.sqrt(dx * dx + dy * dy) / lineThickness;
+
+            if (rectCount <= 1) {
+                brush_draw(mouseX, mouseY, lineThickness);
+            } else {
+                for (var i = 0; i < rectCount; i++) {
+                    // calc an XY between starting & ending drag points
+                    var nextX = startX + dx * i / rectCount;
+                    var nextY = startY + dy * i / rectCount;
+                    brush_draw(nextX, nextY, lineThickness);
+                }
+            }
+            startX = mouseX;
+            startY = mouseY;
+          }
+
+
+       /* draw image */
+       // draw image onload
+       explictDrawImg.onload = function(){
+           stage.states.isdrawbrush = true;
+       }
+       var baseDraw = new Kinetic.Image({
+                x: 0,
+                y: 0,
+                width: imageObj.width,
+                height: imageObj.height,
+            });
+       baseDrawLayer.add(baseDraw);
+
+       var tmpDrawLayer = new Kinetic.Layer();
+       function brush_draw(x, y, lineThickness){
+           // create a new canvas that renders circle
+            var _R = Math.round(lineThickness);
+            var tmpDraw = new Kinetic.Circle({
+                x:x,
+                y:y,
+                fill: 'rgba(0,0,255,255)',
+                radius: _R,
+                opacity:0.5,
+            });
+            stage.add(tmpDrawLayer);
+            tmpDrawLayer.moveToBottom();
+            tmpDrawLayer.add(tmpDraw);
+            tmpDrawLayer.draw();
+            var ctx = tmpDraw.getContext();
+            var drawData=ctx.getImageData(x-_R,y-_R, 2*_R+1,2*_R+1);
+            tmpDraw.remove()
+
+            var ctx = baseDraw.getContext();
+            var imgData=ctx.getImageData(x-_R,y-_R, 2*_R+1,2*_R+1);
+            if (draw_state == DRAW){
+                for (i=0; i<imgData.data.length; i+=4){
+                    imgData.data[i+2] = imgData.data[i+2] | drawData.data[i+2];
+                    imgData.data[i+3] = Math.max(drawData.data[i+3], imgData.data[i+3]);
+                    //imgData.data[i+3] = imgData.data[i+3] | drawData.data[i+3];
+                }
+            }else if (draw_state == ERASE){
+                for (i=0; i<imgData.data.length; i+=4){
+                    imgData.data[i+2] = imgData.data[i+2] | drawData.data[i+2];
+                    imgData.data[i+3] = Math.min(128-drawData.data[i+3], imgData.data[i+3]);
+                }
+            }
+            ctx.putImageData(imgData,x-_R,y-_R);
+
+            stage.states.isdrawbrush = false;
+            explictDrawImg.src = baseDrawLayer.getCanvas().toDataURL();
+            baseDraw.fillPatternImage(explictDrawImg);
+            isdrew = true;
+       } // draw brush end
+
+
+
+       /* draw brush in glass */
+       glassDraw = new Kinetic.Circle({
+                fillPatternImage: imageObj,
+                fillPatternScaleX: zoom,
+                fillPatternScaleY: zoom,
+                fillPatternOffsetX: 256,
+                fillPatternOffsetY: 256,
+                x: 256,
+                y: 256,
+                radius: R*4,
+                opacity: 1,
+            });
+       glassDraw.setStroke(null);
+       glassDrawLayer.add(glassDraw);
+       stage.add(glassDrawLayer);
+        glassDrawLayer.draw();
+        /* ============ drawing polygons ==============*/
+        var tmpPolyLayer = new Kinetic.Layer();
+        stage.add(tmpPolyLayer);
+        for (i=0; i<polygons['polys'].length; i++){
+            var polys = polygons['polys'][i];
+            for (j=0; j<polys.length;j++){
+                var poly = polys[j];
+                for (k = 0; k<poly.length; k+=2){poly[k] *= imageObj.width;}
+                for (k = 1; k<poly.length; k+=2){poly[k] *= imageObj.height;}
+                var p = new Kinetic.Line({
+                    points: poly,
+                    fill: 'green',
+                    opacity: 0.5,
+                    closed: true,
+                });
+                tmpPolyLayer.add(p);
+            }
+        }
+        tmpPolyLayer.draw();
+        polyImgTmp = new Image();
+        polyImgTmp.src = tmpPolyLayer.getCanvas().toDataURL()
+
+       polyImgTmp.onload =function(){
+       /* dilation */
+       var tmpImg = new Kinetic.Image({
+           image: polyImgTmp,
+           x: 0,
+           y: 0,
+           width: imageObj.width,
+           height: imageObj.height,
+           blurRadius: 2,
+       });
+       var tmpImgLayer = new Kinetic.Layer();
+       stage.add(tmpImgLayer);
+       tmpImgLayer.add(tmpImg);
+       tmpImg.cache();
+       tmpImg.filters([Kinetic.Filters.Blur]);
+       var ctx = tmpImgLayer.getContext();
+       tmpImgLayer.draw();
+       var imgData=ctx.getImageData(0,0, imageObj.width, imageObj.height);
+       for (var i=0; i<imgData.data.length; i+=4){
+           if (imgData.data[i+3] > 5){
+               imgData.data[i+2] = 255;
+               imgData.data[i+3] = 128;
+           }else{
+               imgData.data[i+2] = 0;
+               imgData.data[i+3] = 0;
+           }
+       }
+       ctx.putImageData(imgData,0,0);
+       tmpImgLayer.draw();
+       polyImg.src = tmpImgLayer.getCanvas().toDataURL();
+       } // tmp dilatino end
+       polyImg.onload =function(){
+       // set polygonLayer
+       var polyDilated = new Kinetic.Image({
+           image: polyImg,
+           x: 0,
+           y: 0,
+           width: imageObj.width,
+           height: imageObj.height,
+       });
+       stage.add(polygonLayer);
+       polygonLayer.add(polyDilated);
+       polygonLayer.draw();
+       // draw glass polygon map
+        glassPolyDraw = new Kinetic.Circle({
+                fillPatternImage: polyImg,
+                fillPatternScaleX: zoom,
+                fillPatternScaleY: zoom,
+                fillPatternOffsetX: 256,
+                fillPatternOffsetY: 256,
+                x: 256,
+                y: 256,
+                radius: R*4,
+                opacity: 1,
+            });
+        glassPolyDraw.setStroke(null);
+        glassPolyDrawLayer.add(glassPolyDraw);
+        stage.add(glassPolyDrawLayer);
+        glassPolyDrawLayer.draw();
+
+        // add things to the stage with layer ordering
+                baseLayer.moveToTop();
+            baseDrawLayer.moveToTop();
+             polygonLayer.moveToTop();
+            explicitLayer.moveToTop();
+               glassLayer.moveToTop();
+           glassDrawLayer.moveToTop();
+       glassPolyDrawLayer.moveToTop();
+      } //polyImg onload end
+
+      // keyboard event
+        $(document).keypress( function(ev){
+              if (ev.which == 90 || ev.which == 122){
+                if (zoom <8){ zoom += 0.25;}
+                  glassZoom();
+              }
+              if (ev.which == 88 || ev.which == 120){
+                if (zoom > 0.25){zoom -= 0.25;}
+                else{zoom = 0.25}
+                glassZoom();
+              }
+              if (ev.which == 68 || ev.which == 100){
+                if (draw_state != DRAW){
+                    draw_state_toggle();
+                }
+                  glassZoom();
+              }
+              if (ev.which == 69 || ev.which == 101){
+                if (draw_state != ERASE){
+                    draw_state_toggle();
+                }
+                  glassZoom();
+              }
+        });
+      }; // image load end
+      // loading demo image here
+      imageObj.src = 'static/img/demo/cat.jpg';
+    </script>
+  </body>
+</html>

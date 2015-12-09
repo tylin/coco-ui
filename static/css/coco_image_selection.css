@@ -1,0 +1,160 @@
+#title
+{
+    font-size:18pt;
+    font-weight:800;
+    color:black
+}
+.div_icon_grid
+{
+    height:100px;
+    width:100px;
+    border:solid;
+    display:inline-block;
+}
+.im_icon_grid
+{
+    height:100px;
+    width:100px;
+    display:inline-block;
+}
+#instruction
+{
+    border:solid;
+    text-align: left;
+    padding-left: 8px;
+    padding-top: 8px;
+    width: 800px;
+    font-size: 12pt;
+}
+.container
+{
+    width:800px;
+}
+.div_grid_0
+{
+    margin-left: 8px;
+    margin-top: 8px;
+    border: solid;
+    border-width:6px;
+    width: 180px;
+    height: 150px;
+    display:inline-block;
+}
+.div_grid_1
+{
+    margin-left: 8px;
+    margin-top: 8px;
+    border: solid;
+    border-width:6px;
+    border-color:#98bf21;
+    width: 180px;
+    height: 150px;
+    display:inline-block;
+}
+.im_grid
+{
+/*    border-style:dashed;  */
+    width:180px;
+    height: 150px;
+    display:inline-block;
+}
+.div_cats_icons
+{
+    font-size:18pt;
+    border-style:dashed;
+    margin-left:10px;
+    padding-left:2px;
+    padding-right:2px;
+    width:170px;
+    display:inline-block;
+    vertical-align:text-bottom;
+}
+.div_task
+{
+    font-size: 24pt;
+    width:800px;
+}
+.div_candidate_icons
+{
+    width:780px;
+    height:200px;
+    border:dashed;
+}
+.icon
+{
+    width:75px;
+    margin-left:2px;
+    margin-top:2px;
+    border-style:solid;
+}
+#imdiv
+{
+    width:800;
+}
+
+body {
+    margin:0;
+    padding:40px;
+    background:#fff;
+    font:80% Arial, Helvetica, sans-serif;
+    color:#555;
+    line-height:180%;
+}
+
+h1{
+    font-size:180%;
+    font-weight:normal;
+    color:#555;
+}
+h2{
+    clear:both;
+    font-size:160%;
+    font-weight:normal;
+    color:#555;
+    margin:0;
+    padding:.5em 0;
+}
+a{
+    text-decoration:none;
+    color:#f30;
+}
+p{
+    clear:both;
+    margin:0;
+    padding:.5em 0;
+}
+pre{
+    display:block;
+    font:100% "Courier New", Courier, monospace;
+    padding:10px;
+    border:1px solid #bae2f0;
+    background:#e3f4f9;
+    margin:.5em 0;
+    overflow:auto;
+    width:800px;
+}
+
+img{border:none;}
+ul,li{
+    margin:0;
+    padding:0;
+}
+li{
+    list-style:none;
+    float:left;
+    display:inline;
+    margin-right:10px;
+}
+
+#preview{
+    position:absolute;
+    border:1px solid #ccc;
+    background:#333;
+    padding:5px;
+    display:none;
+    color:#fff;
+    }
+
+input[type="text"] {
+    width: 500px;
+}
