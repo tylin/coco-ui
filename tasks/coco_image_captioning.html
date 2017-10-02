@@ -2,7 +2,7 @@
 
 <html>
     <head>
-        <meta charset="utf-8"/>
+        <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -14,19 +14,22 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
         <!-- Latest compiled and minified JavaScript -->
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+        <script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
 
-        <script src="static/js/mturk_form_submitor.js"></script>
+        <script src="../static/js/mturk_form_submitor.js"></script>
         <script>
+            STATIC_ROOT = "../static";
+
             // ============================================================================
             // create question set and state to go through the questions
             // ============================================================================
             var questions = new Array();
             var state = 0;
             var init_time = $.now();
-            // TODO: define list of image urls to load in this page
-            var im_urls = ["http://orig13.deviantart.net/ac5c/f/2011/345/8/0/business_cat_original_by_plasticpyre-d4irr6a.jpg",
-                   "http://orig03.deviantart.net/0336/f/2012/204/d/f/cute_cat_by_animexchibixmanga-d58ajxe.jpg",
-                   "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR-Mks10gAfyzFUEFgdISlD-2N-ymFK3KiirV1tl_gEyLTVy0ju"];
+
+            // change im_urls to your images
+            var im_urls = [STATIC_ROOT + "/images/demo/dog.jpg",
+                           STATIC_ROOT + "/images/demo/cat.jpg"];
 
             // ============================================================================
             // initialize images
@@ -121,7 +124,7 @@
                     var text = 'Do not describe what a person might say.';
                 }else if(idx == 4){
                     var text = 'Do not give people proper names.';
-                }else if (idx == 5){
+                }else if(idx == 5){
                     var text = 'This is the BEST sentence! Please apply the same rule to describe following 3 images.';
                 }else if(idx == 6){
                     var text = 'Please includes more details.';
@@ -132,6 +135,16 @@
                 }
                 $("#dialog-modal" ).text(text);
                 $("#dialog-modal" ).dialog('open');
+            }
+            function getAnswers(){
+                var answers = [];
+                for (var i=0; i<questions.length; i++){
+                    answers.push({
+                        description: questions[i].ans,
+                        im_url: im_urls[i]
+                    });
+                }
+                return answers;
             }
 
             // ===========================================================
@@ -146,7 +159,8 @@
                   buttons: {
                     "Yes": function() {
                       $( this ).dialog( "close" );
-                      submit_form();
+                      $("#ans").val(JSON.stringify(getAnswers()));
+                      $('#mturk_form').submit();
                     },
                     Cancel: function() {
                       $( this ).dialog( "close" );
@@ -162,18 +176,21 @@
             $(document).ready(function(){
               $(document).on("cut copy paste","#description",function(e) {
                   e.preventDefault();
-            });
-           });
+              });
+             });
         </script>
     </head>
     <body>
         <div id="dialog-modal" title="Message"></div>
         <div id="dialog-confirm" title="Save the Result?"></div>
-        <form id='mturk_form' action="MTURK_FORM_TO_SUBMIT" method="POST">
-            <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
-            <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
-            <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+        <form name='mturk_form' method='post' id='mturk_form' action='MTURK_FORM_ACTION'>
+            <input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+            <div>
+                <input type='hidden' value='' name='ans' id='ans'/>
+            </div>
+            <input type='submit' id='submitButton' value='Submit' />
         </form>
+        <script language='Javascript'>turkSetAssignmentID();</script>
         <div style='text-align:center;display:inline-block'>
             <div style='width:800px;display:inline-block'>
                 <div style='display:inline-block;width:500px'>

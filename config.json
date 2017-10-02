@@ -1,0 +1,16 @@
+{
+  "STATIC_ROOT": "https://storage.googleapis.com/ui-static.cocodataset.org",
+  "HIT":{
+    "USE_SANDBOX": true,
+    "REGION_NAME": "us-east-1",
+    "Title": "Label All Object Categories in the images",
+    "Description": "Label all object categoires in the images. change static root.",
+    "Keywords": "image, category, classification",
+    "Reward": "0.05",
+    "MaxAssignments": 1,
+    "LifetimeInSeconds": 172800,
+    "AssignmentDurationInSeconds": 600,
+    "AutoApprovalDelayInSeconds": 86400,
+    "Question": "tasks/coco_category_labeling.html"
+  }
+}

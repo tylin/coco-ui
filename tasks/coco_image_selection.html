@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="static/js/coco_image_selection.js"></script>
+        <script src="static/js/mturk_form_submission.js"></script>
+        <link rel="stylesheet" type="text/css" href="static/css/coco_image_selection.css">
+        <script type="text/javascript">
+            var questions = new Array();
+            var init_time;
+            // TODO: define list of image urls to load in this page
+            // var im_urls = ["static/img/demo/first.jpg",
+            //        "static/img/demo/second.jpg",
+            //        "https://c1.staticflickr.com/1/39/122530943_8f3369f2cb.jpg",
+            //        "http://canineplanet.net/wp-content/uploads/2014/09/cute-dog-pictures.jpg",
+            //        "http://orig04.deviantart.net/0d55/f/2009/019/0/3/cute_cat_by_flareon200.jpg",
+            //        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKFyfuN5tJkC0UV1PXQLq2d6Ubw8f_KWRYn1rNZ6UYJDdNqNVP",
+            //        "http://orig03.deviantart.net/0336/f/2012/204/d/f/cute_cat_by_animexchibixmanga-d58ajxe.jpg",
+            //        "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR-Mks10gAfyzFUEFgdISlD-2N-ymFK3KiirV1tl_gEyLTVy0ju",
+            //        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/So_happy_smiling_cat.jpg/411px-So_happy_smiling_cat.jpg",
+            //       "http://orig13.deviantart.net/ac5c/f/2011/345/8/0/business_cat_original_by_plasticpyre-d4irr6a.jpg",
+            //       "https://c1.staticflickr.com/1/39/122530943_8f3369f2cb.jpg",
+            //       "http://canineplanet.net/wp-content/uploads/2014/09/cute-dog-pictures.jpg"];
+            var im_urls = ["static/img/demo/images_amt/205099_1948899_0.jpg", "static/img/demo/images_amt/205099_1948899_1.jpg",
+"static/img/demo/images_amt/261573_1427438_0.jpg", "static/img/demo/images_amt/261573_1427438_1.jpg",
+"static/img/demo/images_amt/206738_151182_0.jpg", "static/img/demo/images_amt/206738_151182_1.jpg",
+"static/img/demo/images_amt/1251429_1168920_0.jpg", "static/img/demo/images_amt/1251429_1168920_1.jpg",
+"static/img/demo/images_amt/1586661_1653336_0.jpg", "static/img/demo/images_amt/1586661_1653336_1.jpg",
+"static/img/demo/images_amt/216801_1177496_0.jpg", "static/img/demo/images_amt/216801_1177496_1.jpg",
+"static/img/demo/images_amt/1496172_1499717_0.jpg", "static/img/demo/images_amt/1496172_1499717_1.jpg",
+"static/img/demo/images_amt/1037853_1041707_0.jpg", "static/img/demo/images_amt/1037853_1041707_1.jpg",
+"static/img/demo/images_amt/568961_1335882_0.jpg", "static/img/demo/images_amt/568961_1335882_1.jpg",
+"static/img/demo/images_amt/1250129_1333468_0.jpg", "static/img/demo/images_amt/1250129_1333468_1.jpg",
+"static/img/demo/images_amt/180591_1378591_0.jpg", "static/img/demo/images_amt/180591_1378591_1.jpg",
+"static/img/demo/images_amt/1171925_617265_0.jpg", "static/img/demo/images_amt/1171925_617265_1.jpg",
+"static/img/demo/images_amt/1258602_54865_0.jpg", "static/img/demo/images_amt/1258602_54865_1.jpg",
+"static/img/demo/images_amt/1833815_2078746_0.jpg", "static/img/demo/images_amt/1833815_2078746_1.jpg",
+"static/img/demo/images_amt/46819_108635_0.jpg", "static/img/demo/images_amt/46819_108635_1.jpg",
+"static/img/demo/images_amt/240406_1176422_0.jpg", "static/img/demo/images_amt/240406_1176422_1.jpg",
+"static/img/demo/images_amt/237420_2048119_0.jpg", "static/img/demo/images_amt/237420_2048119_1.jpg",
+"static/img/demo/images_amt/191115_240744_0.jpg", "static/img/demo/images_amt/191115_240744_1.jpg",
+"static/img/demo/images_amt/476665_1433355_0.jpg", "static/img/demo/images_amt/476665_1433355_1.jpg",
+"static/img/demo/images_amt/1707069_1880572_0.jpg", "static/img/demo/images_amt/1707069_1880572_1.jpg",
+"static/img/demo/images_amt/434589_373448_0.jpg", "static/img/demo/images_amt/434589_373448_1.jpg",
+"static/img/demo/images_amt/472835_1812362_0.jpg", "static/img/demo/images_amt/472835_1812362_1.jpg",
+"static/img/demo/images_amt/1542487_1543979_0.jpg", "static/img/demo/images_amt/1542487_1543979_1.jpg",
+"static/img/demo/images_amt/2008875_2211957_0.jpg", "static/img/demo/images_amt/2008875_2211957_1.jpg",
+"static/img/demo/images_amt/1692064_1758379_0.jpg", "static/img/demo/images_amt/1692064_1758379_1.jpg",
+"static/img/demo/images_amt/573289_1957700_0.jpg", "static/img/demo/images_amt/573289_1957700_1.jpg",
+"static/img/demo/images_amt/663035_664710_0.jpg", "static/img/demo/images_amt/663035_664710_1.jpg",
+"static/img/demo/images_amt/1954490_1994693_0.jpg", "static/img/demo/images_amt/1954490_1994693_1.jpg",
+"static/img/demo/images_amt/179057_180592_0.jpg", "static/img/demo/images_amt/179057_180592_1.jpg",
+"static/img/demo/images_amt/707818_717371_0.jpg", "static/img/demo/images_amt/707818_717371_1.jpg",
+"static/img/demo/images_amt/1951906_1152870_0.jpg", "static/img/demo/images_amt/1951906_1152870_1.jpg",
+"static/img/demo/images_amt/1261051_1765153_0.jpg", "static/img/demo/images_amt/1261051_1765153_1.jpg",
+"static/img/demo/images_amt/197800_1959282_0.jpg", "static/img/demo/images_amt/197800_1959282_1.jpg",
+"static/img/demo/images_amt/468930_1416155_0.jpg", "static/img/demo/images_amt/468930_1416155_1.jpg",
+"static/img/demo/images_amt/1533171_1905019_0.jpg", "static/img/demo/images_amt/1533171_1905019_1.jpg",
+"static/img/demo/images_amt/1582692_1659123_0.jpg", "static/img/demo/images_amt/1582692_1659123_1.jpg",
+"static/img/demo/images_amt/261147_1791697_0.jpg", "static/img/demo/images_amt/261147_1791697_1.jpg",
+"static/img/demo/images_amt/1564381_2188222_0.jpg", "static/img/demo/images_amt/1564381_2188222_1.jpg",
+"static/img/demo/images_amt/1484386_1496348_0.jpg", "static/img/demo/images_amt/1484386_1496348_1.jpg",
+"static/img/demo/images_amt/436452_2008031_0.jpg", "static/img/demo/images_amt/436452_2008031_1.jpg"]
+
+            // var category_names = ["person", "refrigerator",
+            //                       "person", "person",
+            //                       "person", "refrigerator",
+            //                       "person", "refrigerator"]
+            var category_names = ["person", "chair",
+"person", "umbrella",
+"person", "motorcycle",
+"person", "backpack",
+"chair", "book",
+"person", "handbag",
+"wine glass", "wine glass",
+"bowl", "banana",
+"person", "bicycle",
+"person", "bicycle",
+"boat", "boat",
+"backpack", "snowboard",
+"person", "horse",
+"handbag", "handbag",
+"cat", "chair",
+"person", "handbag",
+"person", "motorcycle",
+"person", "bicycle",
+"person", "handbag",
+"person", "cup",
+"person", "chair",
+"person", "bench",
+"banana", "banana",
+"person", "handbag",
+"person", "person",
+"bench", "bed",
+"wine glass", "wine glass",
+"potted plant", "vase",
+"boat", "boat",
+"spoon", "bowl",
+"potted plant", "vase",
+"person", "bicycle",
+"person", "dining table",
+"person", "backpack",
+"bowl", "banana",
+"chair", "book",
+"person", "motorcycle",
+"carrot", "carrot",
+"bottle", "wine glass",
+"person", "person"]
+
+            // ================================================================
+            // Dynamically generate comments when page is ready
+            // ================================================================
+            $(window).load(function(){
+                questions = initialize_grid(im_urls, category_names);
+                init_time = $.now();
+            });
+        </script>
+    </head>
+    <body>
+        <!--
+        the form that defines what values are going to be sent to MTurk
+        the action of form and values for hitId, assignmentId, and workerId should be modified
+        -->
+        <form id='mturk_form' action="MTURK_FORM_TO_SUBMIT">
+            <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
+            <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
+            <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+        </form>
+        <div class="instruction" id='title'>Instructions:</div>
+        <div class='container'>
+            <div id='instruction'>
+                <!-- TODO: Write your instruction here -->
+                <p>
+                  In each row click on the image with better objects layout.
+                </p>
+                <div id="im_example", align = "center">
+                  <div class="div_grid_1_header">
+                    <img class="im_grid_header" src="static/img/demo/images_amt/707818_717371_0.jpg"><br />
+                    <p align="center">Draw <span style="color:#72e786">spoon</span> in front</p>
+                  </div>
+                  <div class="div_grid_0_header">
+                    <img class="im_grid_header" src="static/img/demo/images_amt/707818_717371_1.jpg"><br />
+                    <p align="center">Draw <span style="color:#f18c90">bowl</span> in front</span></p>
+                  </div>
+                </div>
+                <p>
+                  Task clarification
+                </p>
+            </div>
+
+            <div>
+                <!-- image div for displaying grid -->
+                <div id='imdiv'></div>
+
+                <!-- button for submitting the HIT -->
+                <br>
+                <div id='bottom' style='margin-bottom:8px'>
+                    <input id='button' type='button' value='submit this HIT!' style='font-size:16pt' onclick='submit_form(questions)'>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

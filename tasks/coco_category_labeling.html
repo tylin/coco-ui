@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+        <script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" />
+        <script>
+            STATIC_ROOT = "../static";
+            $('<link>').attr('rel','stylesheet')
+              .attr('type','text/css')
+              .attr('href',STATIC_ROOT + '/css/coco_category_labeling.css')
+              .appendTo('head');
+            // change im_urls to your images
+            var im_urls = [STATIC_ROOT + "/images/demo/dog.jpg",
+                           STATIC_ROOT + "/images/demo/cat.jpg"];
+
+            $(document).ready(function(){
+                $( "#dialog-confirm" ).dialog({
+                  autoOpen: false,
+                  resizable: false,
+                  height:140,
+                  modal: true,
+                  buttons: {
+                    "Yes": function() {
+                      $( this ).dialog( "close" );
+                      $("#ans").val(JSON.stringify(getAnswers()));
+                      $('#mturk_form').submit();
+                    },
+                    Cancel: function() {
+                      $( this ).dialog( "close" );
+                    }
+                  }
+                });
+                $( ".ui-dialog" ).css('position', 'absolute');
+                $.getScript(STATIC_ROOT + '/js/coco_category_labeling.js', function(){
+                    initialize_anncats();
+                });
+            });
+        </script>
+        <!--<script src="../static/js/coco_category_labeling.js"></script>-->
+        <!--<link rel="stylesheet" type="text/css" href="../static/css/coco_category_labeling.css">-->
+    </head>
+    <body>
+    <form name='mturk_form' method='post' id='mturk_form' action='MTURK_FORM_ACTION'>
+        <input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+        <div>
+            <input type='hidden' value='' name='ans' id='ans'/>
+        </div>
+        <input type='submit' id='submitButton' value='Submit' />
+    </form>
+    <script language='Javascript'>turkSetAssignmentID();</script>
+
+    <div id="dialog-confirm" title="Save the Result?"></div>
+    <div id='container' class='container'>
+        <div class="instruction" id='title'>Instructions:</div>
+        <div style='border:solid; margin-bottom:10px; padding-left:5px'>
+            <div>
+                Please
+                <span style="color:green;display:inline">drag and drop </span>
+                icons from the bottom panel to matching objects in the image.
+                If an icon matches multiple objects you can drag the icon onto any of the objects.
+                There are <sapn style="color:green;display:inline"> 11 </sapn>
+                sets of objects to drag onto the image.
+                Use the buttons or arrow keys
+                to cycle through them.
+                There are total of
+                <span id="nimages" style="color:green;display:inline"></span>
+                images to label.
+                <br>
+                <span style="color:green;display:inline;font-size:16pt"> Please drag and drop ICONS to matching objects in the image. </span>
+                <br>
+                <br>
+                Here is an example of a labeled image:<br>
+                <img id="example">
+            </div>
+        </div>
+
+        <script type='text/javascript'>
+        for (i=0; i < im_urls.length; i++){
+            document.write("<div id='task"+i+"' style='display:block table-cell'><div id='title"+i+"' style='color:black;font-size:16pt;font-weight:800;'><a id='anchor"+i+"' href='#title"+i+"'>Image "+(i+1)+" </a>:</div><div><div id='imdiv"+i+"'></div><div class='div-selected-icon-panel' id='cats_icons"+i+"'>Image contains:<br></div></div><div class='div-task' id='div-task"+i+"'><div id='question_panel"+i+"'></div></div><br><br></div>");
+        }
+        </script>
+        <br>
+        <br>
+    </div>
+    </body>
+</html>
