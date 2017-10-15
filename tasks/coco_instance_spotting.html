@@ -5,26 +5,18 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
         <script src="https://code.jquery.com/jquery-migrate-1.2.1.js"></script>
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
-        <script src="static/js/coco_instance_spotting.js"></script>
-        <script src="static/js/mturk_form_submission.js"></script>
-        <link rel="stylesheet" type="text/css" href="static/css/coco_instance_spotting.css">
+        <script src="../static/js/coco_instance_spotting.js"></script>
+        <link rel="stylesheet" type="text/css" href="../static/css/coco_instance_spotting.css">
         <script>
-            // ==========================================
-            // =========== prepare data =================
-            // ==========================================
-
+            var STATIC_ROOT = "../static";
             // define images for each task
             // TODO: replace your image urls
-            var im_urls = ["http://orig01.deviantart.net/cedb/f/2013/113/f/5/basket_of_cats_by_chained2stone-dy75pd.jpg",
-                           "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_HqqOSDNsR4_m9Ofw1AwZeVlzsNLUzw_3DnLoXVLcpAD9nA1A",
-                           "https://upload.wikimedia.org/wikipedia/commons/8/8a/Laitche-P013.jpg"];
+            var im_urls = [STATIC_ROOT + "/images/demo/cat.jpg"];
             // set up hints
             // the location of hints were annotated in the category labeling stage
             // here 3 hints are corresponding to 3 images
             var hints = new Array();
             hints[0] = {"x": [0.3],"y": [0.5], "cat_id":17};
-            hints[1] = {"x": [0.5],"y": [0.5], "cat_id":17};
-            hints[2] = {"x": [0.5],"y": [0.5], "cat_id":17};
 
             // image objects
             var Im = new Array();
@@ -47,9 +39,6 @@
 
             $(window).load(function(){
                 init_time = $.now();
-                //category
-
-
                 // Answers
                 for (i=0; i<hints.length; i++){
                     Anno[i] = new Object();
@@ -72,6 +61,27 @@
                 imClick_Ctrl();
                 window.oncontextmenu = function() { return false };
             });
+
+            function addDialog(){
+                $( "#dialog-confirm" ).dialog({
+                  autoOpen: false,
+                  resizable: false,
+                  height:140,
+                  modal: true,
+                  buttons: {
+                    "Yes": function() {
+                      $( this ).dialog( "close" );
+                      var ans = JSON.stringify(Anno);
+                      $("#ans").val(ans)
+                      $("#mturk_form").submit();
+                    },
+                    Cancel: function() {
+                      $( this ).dialog( "close" );
+                    }
+                  }
+                });
+                $( ".ui-dialog" ).css('position', 'absolute');
+            }
         </script>
     </head>
     <body>
@@ -79,6 +89,7 @@
             <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
             <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
             <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+            <input type="hidden" id="ans" name="ans" value='MTURK_WORKER_ID'>
         </form> 
         <div class='hint'><img class='hint-img'></div>
         <div id="dialog-confirm" title="Save the Result?"></div>
@@ -99,7 +110,7 @@
                         </ul>
                     </div>
                     <div class='step-div'>
-                        <img class='step-img' src='static/img/instance_spotting/example.jpg'>
+                        <img class='step-img' src='../static/images/instance_spotting/example.jpg'>
                     </div>
                     <br>
                 </div>

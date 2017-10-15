@@ -31,7 +31,7 @@ Ctrler.prototype.render_category_panel = function(){
     var i = this.cur_img_idx;
     var j = this.cur_obj_idx;
     var cat_id = Anno[i].cat_id
-    var src = 'static/img/categories/' + cat_id[0] + '.png';
+    var src = STATIC_ROOT + '/images/categories/' + cat_id[0] + '.png';
     // render icon
     var cat_div = $('#div-cat-img');
     cat_div.find('img').attr('src', src);
@@ -60,7 +60,7 @@ Ctrler.prototype.render_hint = function(){
     $('.hint').css('left', pos_x);
     $('.hint').css('top', pos_y);
     var cat_id = Anno[i].cat_id
-    var src = 'static/img/categories/' + cat_id + '.png';
+    var src = STATIC_ROOT + '/images/categories/' + cat_id + '.png';
     $('.hint-img').attr('src', src);
     var s = 400;
     $('.hint').fadeTo(s,0.1).fadeTo(s,1).fadeTo(s,0.1).fadeTo(s,1).fadeTo(s, 0);
@@ -296,25 +296,6 @@ function addListener(){
     $('.img' ).bind(  'mousemove', ctrler.renderLen);
     $('.imgdiv').bind('mousemove', ctrler.renderLen);
     $('.anno').bind(  'mousemove', ctrler.renderLen);
-}
-
-function addDialog(){
-    $( "#dialog-confirm" ).dialog({
-      autoOpen: false,
-      resizable: false,
-      height:140,
-      modal: true,
-      buttons: {
-        "Yes": function() {
-          $( this ).dialog( "close" );
-          submit_form();
-        },
-        Cancel: function() {
-          $( this ).dialog( "close" );
-        }
-      }
-    });  
-    $( ".ui-dialog" ).css('position', 'absolute'); 
 }
 
 // add markers

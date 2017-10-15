@@ -23,6 +23,7 @@
     <script>
         STATIC_ROOT = "../static";
 
+        var init_time = $.now();
         DRAW = 1;
         ERASE = 0;
         draw_state = DRAW;
@@ -55,15 +56,13 @@
             $('#btn-submit').on('click', function(){
                 // the show the annotated base64 region
                 var ans = explictDrawImg.src;
-                console.log(ans);
                 $("input[name='isObj']").val(1)
-                //submit_form();
+                submit_form();
 
             })
             $('#btn-submit-no-obj').on('click', function(){
                 $("input[name='isObj']").val(0)
-                // submit form if there is no crowd
-                //submit_form();
+                submit_form();
             })
 
                 // show dialog
@@ -84,39 +83,16 @@
             }
         }
         // ==================== submit =============================
-        var init_time = $.now();
         function submit_form(){
             $('.btn').attr("disabled", "disabled");
             var c = 0;
             // send back annotated region as base64 image
             var ans = explictDrawImg.src;
-            var duration = parseFloat($.now()-init_time)/1000;
+            var duration = parseFloat($.now()-init_time) / 1000;
             duration = duration.toString();
-            $("input[name='ans']").val(ans)
-            $("input[name='duration']").val(duration)
-            resp =
-                {'ans':ans,
-                 'duration': duration,
-                 'assignmentId':$('#assignmentId').val(),
-                 'workerId': $('#workerId').val(),
-                 'isObj': $('#isObj').val(),
-            };
-            // AJAX
-            $.ajax({
-              type: "POST",
-              url: window.location.href,
-              data: {'resp':JSON.stringify(resp),
-                    },
-            }).done(function(data) {
-                  if (data == 'reload'){
-                      window.location.reload();
-                  }else if (data = 'submit'){
-                      $('#mturk_form').submit();
-                  }
-            }).fail( function(data){
-                alert('Timeout, please click "Next" again to submit your HIT');
-                $('.btn').removeAttr('disabled');
-            }) ;
+            $("input[name='ans']").val(ans);
+            $("input[name='duration']").val(duration);
+            $('#mturk_form').submit();
         }
 
     </script>
@@ -126,6 +102,8 @@
     <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
     <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
     <input type="hidden" id="isObj" name="isObj" value='0'>
+    <input type="hidden" id="ans" name="ans" value=''>
+    <input type="hidden" id="duration" name="duration" value='0'>
   </form>
   <body>
 

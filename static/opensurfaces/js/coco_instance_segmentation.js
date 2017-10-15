@@ -7,7 +7,7 @@ function Ctrler(){
     this.im = new Image();
     // use cat icon for demo
     var cat_id = 17;
-    this.im.src = 'static/img/categories/'+cat_id+'.png';
+    this.im.src = STATIC_ROOT + '/images/categories/'+cat_id+'.png';
     this.zoomLevel = 0;
 }
 // center icon
@@ -104,24 +104,7 @@ Ctrler.prototype.submitNoObj = function(){
         $("input[name='duration']").val(duration)
         $("input[name='ans']").val(ans);
         $("input[name='isObj']").val(0);
-      return $.ajax({
-        type: 'POST',
-        url: window.location.href,
-        data: {'resp': JSON.stringify(resp)} ,
-        timeout: 60000,
-      }).done( function(data) {
-          if (data == 'reload'){
-              window.location.reload();
-          }else if (data = 'submit'){
-              $('#mturk_form').submit();
-          }else{
-              alert('error');
-              window.hide_modal_loading();
-          }
-      }).fail( function(data){
-          alert('Timeout, please click "Next" again to submit your HIT');
-          window.hide_modal_loading();
-      }) ;
+        $('#mturk_form').submit();
 }
 Ctrler.prototype.submit_form = function(data_callback) {
       var data, feedback;
@@ -156,24 +139,7 @@ Ctrler.prototype.submit_form = function(data_callback) {
         $("input[name='duration']").val(duration)
         $("input[name='ans']").val(ans);
         $("input[name='isObj']").val(1);
-      return $.ajax({
-        type: 'POST',
-        url: window.location.href,
-        data: {'resp': JSON.stringify(resp)} ,
-        timeout: 60000,
-      }).done( function(data) {
-          if (data == 'reload'){
-              window.location.reload();
-          }else if (data = 'submit'){
-              $('#mturk_form').submit();
-          }else{
-             alert('error');
-             window.hide_modal_loading();
-          }
-      }).fail( function(data){
-          alert('Timeout, please click "Next" again to submit your HIT');
-          window.hide_modal_loading();
-      }) ;
+        $('#mturk_form').submit();
     }
 Ctrler.prototype.addListener = function(){
     $('#btn-zoom-in').bind('click', function(e){
